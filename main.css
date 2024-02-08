@@ -1,0 +1,31 @@
+.button-box {
+	padding: 0 10px 0 10px;
+	margin-top: 10px;
+	display: flex;
+	gap: 1rem;
+}
+
+.button-box > button {
+	border: 1px solid rgb(157 23 77);
+	padding: 0.5rem 1rem;
+	color: rgb(157 23 77);
+	box-shadow: var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);
+	background-color: white;
+	border-radius: 0.25rem;
+}
+
+.button-box >button.active {
+	color: white;
+	background-color: rgb(157 23 77);
+}
+
+.button-box > button:hover {
+    background-color: rgb(157 23 77 / 10%);
+    border-color: rgb(139 16 66);
+    color: rgb(139 16 66);
+}
+
+.button-box > button.active:hover {
+	background-color: rgb(139 16 66);
+	color: white;
+}

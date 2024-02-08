@@ -4,9 +4,9 @@ const yearProfitClass = 'fin_year_profit_d';
 const halfResultClass = 'fin_half_result_d';
 const quarterResultClass = 'fin_quarter_result_d';
 const quarterGrowthClass = 'fin_quarter_growth_d';
-const yearGraphId = 'fin_year';
-const halfGraphId = 'fin_half';
-const quarterGraphId = 'fin_quarter';
+const yearGraphId = 'year';
+const halfGraphId = 'half';
+const quarterGraphId = 'quarter';
 const yearResultLegend = ['売上高', '営業益', '経常益', '最終益', '修正1株益', '修正1株配'];
 const yearProfitLegend = [
   '売上高',
@@ -30,13 +30,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('load', () => {
   $('.gyousekishuusei_zenkihi_title').after(
-    `<div id="fin_f-buttons" class="button-box"><button onclick="render('${yearResultClass}')">【通期】業績推移</button><button onclick="render('${yearGrowthClass}')">【通期】成長性</button><button onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="fin_year" width="640" height="320"></canvas>`
+    `<div class="button-box"><button id="${yearResultClass}" class="active" onclick="render('${yearResultClass}')">【通期】業績推移</button><button id="${yearGrowthClass}" onclick="render('${yearGrowthClass}')">【通期】成長性</button><button id="${yearProfitClass}" onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="year" width="640" height="320"></canvas>`
   );
-  $('#hanki_name').after('<canvas id="fin_half" width="640" height="320"></canvas>');
+  $('#hanki_name').after('<canvas id="half" width="640" height="320"></canvas>');
   $('#shihanki_name')
     .parent()
     .before(
-      `<div id="fin_q-buttons" class="button-box"><button onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="fin_quarter" width="640" height="320"></canvas>`
+      `<div class="button-box"><button id="${quarterResultClass}" class="active" onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button id="${quarterGrowthClass}" onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
     );
 
   const yearResultTable = parseTable($(`.${yearResultClass} > table`), yearResultClass);
@@ -61,6 +61,26 @@ function render(className) {
 
   if (window[canvasId]) window[canvasId].destroy();
 
+  if (className.includes('year')) { 
+    [
+      $(`#${yearResultClass}`),
+      $(`#${yearGrowthClass}`),
+      $(`#${yearProfitClass}`),
+    ].forEach((el) => {
+      if (el.attr('id') === className) el.addClass('active');
+      else el.removeClass('active');
+    });
+  }
+  else if (className.includes('quarter')) {
+    [
+      $(`#${quarterResultClass}`),
+      $(`#${quarterGrowthClass}`),
+    ].forEach((el) => {
+      if (el.attr('id') === className) el.addClass('active');
+      else el.removeClass('active');
+    });
+  }
+
   renderGraph(data, className, canvasId);
 }
 
@@ -83,7 +103,7 @@ function parseTable(table, className) {
   } else if (className === quarterResultClass) {
     heads.shift();
     heads.pop();
-  } else if (className === quarterGrowthClass) { 
+  } else if (className === quarterGrowthClass) {
     heads = heads.slice(1, 2);
   }
 
@@ -128,7 +148,12 @@ function parseTable(table, className) {
 
   const labels = table
     .find('tbody > tr > th')
-    .map((_, th) => $(th).text().replace(/I|U|連|単/, '').trim())
+    .map((_, th) =>
+      $(th)
+        .text()
+        .replace(/I|U|連|単/, '')
+        .trim()
+    )
     .get();
   // Remove the last label if it's a comparison line
   if (labels.at(-1) === '前期比' || labels.at(-1) === '前年同期比') labels.pop();
@@ -141,16 +166,14 @@ function renderGraph(data, className, target) {
   const graphConfig = createGraphConfig(graphData, className);
   const canvas = document.getElementById(target);
   window[target] = new Chart(canvas, graphConfig);
-
-  console.log(graphConfig);
 }
 
 function createGraphData(data, className) {
   const years = data.slice(1).map((d) => d[0]);
-  const yearResultOrders = [3, 4, 5, 6, 1, 2];
+  const yearResultOrders = [3, 4, 5, 6, 2, 1];
   const yearProfitOrders = [6, 7, 5, 4, 3, 2, 1];
-  const halfResultOrders = [1, 2, 3, 4, 5, 6];
-  const quarterResultOrders = [1, 2, 3, 4, 5, 6];
+  const halfResultOrders = [3, 4, 5, 6, 2, 1];
+  const quarterResultOrders = [3, 4, 5, 6, 2, 1];
 
   const graphData = {
     labels: years,
@@ -279,8 +302,8 @@ function createGraphConfig(data, className) {
           ticks: {
             callback: function (value) {
               return className === yearProfitClass ? value + '%' : value;
-            }
-          }
+            },
+          },
         },
         right2: {
           type: 'linear',
@@ -291,8 +314,8 @@ function createGraphConfig(data, className) {
           ticks: {
             callback: function (value) {
               return className === quarterResultClass ? value + '%' : value;
-            }
-          }
+            },
+          },
         },
       },
       plugins: {
