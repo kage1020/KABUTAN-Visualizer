@@ -4,6 +4,11 @@ const yearProfitClass = 'fin_year_profit_d';
 const halfResultClass = 'fin_half_result_d';
 const quarterResultClass = 'fin_quarter_result_d';
 const quarterGrowthClass = 'fin_quarter_growth_d';
+const yearResultTabClass = 'fin_year_result';
+const yearGrowthTabClass = 'fin_year_growth';
+const yearProfitTabClass = 'fin_year_profit';
+const quarterResultTabClass = 'fin_quarter_result';
+const quarterGrowthTabClass = 'fin_quarter_growth';
 const yearGraphId = 'year';
 const halfGraphId = 'half';
 const quarterGraphId = 'quarter';
@@ -29,14 +34,34 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
+  let tab = JSON.parse(
+    decodeURIComponent(document.cookie)
+      .split(';')
+      .find((c) => c.includes('shared_finance_tab'))
+      ?.replace('shared_finance_tab=', '')
+  );
+  if (!tab) {
+    tab = { tab_year: 'result', tab_quarter: 'result' };
+  }
+
   $('.fin_year_profit_d').after(
-    `<div class="button-box"><button id="year-display" onclick="toggleDisplay('year')">非表示にする</button><button id="${yearResultClass}" class="active" onclick="render('${yearResultClass}')">【通期】業績推移</button><button id="${yearGrowthClass}" onclick="render('${yearGrowthClass}')">【通期】成長性</button><button id="${yearProfitClass}" onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="year" width="640" height="320"></canvas>`
+    `<div class="button-box"><button id="year-display" onclick="toggleDisplay('year')">非表示にする</button><button id="${yearResultClass}" class=${
+      tab['tab_year'] === 'result' ? 'active' : ''
+    } onclick="render('${yearResultClass}')">【通期】業績推移</button><button  id="${yearGrowthClass}" class=${
+      tab['tab_year'] === 'growth' ? 'active' : ''
+    } onclick="render('${yearGrowthClass}')">【通期】成長性</button><button id="${yearProfitClass}" class=${
+      tab['tab_year'] === 'profit' ? 'active' : ''
+    } onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="year" width="640" height="320"></canvas>`
   );
   $('.fin_half_result_d').after(
     `<div class="button-box"><button id="half-display" onclick="toggleDisplay('half')">非表示にする</button></div><canvas id="half" width="640" height="320"></canvas>`
   );
   $('.fin_quarter_growth_d').after(
-    `<div class="button-box"><button id="quarter-display" onclick="toggleDisplay('quarter')">非表示にする</button><button id="${quarterResultClass}" class="active" onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button id="${quarterGrowthClass}" onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
+    `<div class="button-box"><button id="quarter-display" onclick="toggleDisplay('quarter')">非表示にする</button><button id="${quarterResultClass}" class=${
+      tab['tab_quarter'] === 'result' ? 'active' : ''
+    } onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button id="${quarterGrowthClass}" class=${
+      tab['tab_quarter'] === 'growth' ? 'active' : ''
+    } onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
   );
 
   const yearResultTable = parseTable($(`.${yearResultClass} > table`), yearResultClass);
@@ -46,6 +71,47 @@ window.addEventListener('load', () => {
   renderGraph(yearResultTable, yearResultClass, yearGraphId);
   renderGraph(halfResultTable, halfResultClass, halfGraphId);
   renderGraph(quarterResultTable, quarterResultClass, quarterGraphId);
+
+  $(`.${yearResultTabClass}`).on('click', () => {
+    if ($('#year').is(':visible')) {
+      render(yearResultClass);
+    }
+  });
+  $(`.${yearGrowthTabClass}`).on('click', () => {
+    if ($('#year').is(':visible')) {
+      render(yearGrowthClass);
+    }
+  });
+  $(`.${yearProfitTabClass}`).on('click', () => {
+    if ($('#year').is(':visible')) {
+      render(yearProfitClass);
+    }
+  });
+  $(`.${quarterResultTabClass}`).on('click', () => {
+    if ($('#quarter').is(':visible')) {
+      render(quarterResultClass);
+    }
+  });
+  $(`.${quarterGrowthTabClass}`).on('click', () => {
+    if ($('#quarter').is(':visible')) {
+      render(quarterGrowthClass);
+    }
+  });
+  $(`#${yearResultClass}`).on('click', () => {
+    $(`.${yearResultTabClass}`).click();
+  });
+  $(`#${yearGrowthClass}`).on('click', () => {
+    $(`.${yearGrowthTabClass}`).click();
+  });
+  $(`#${yearProfitClass}`).on('click', () => {
+    $(`.${yearProfitTabClass}`).click();
+  });
+  $(`#${quarterResultClass}`).on('click', () => {
+    $(`.${quarterResultTabClass}`).click();
+  });
+  $(`#${quarterGrowthClass}`).on('click', () => {
+    $(`.${quarterGrowthTabClass}`).click();
+  });
 });
 
 function toggleDisplay(target) {
@@ -270,6 +336,7 @@ function createGraphConfig(data, className) {
     right2Display = false;
 
   if (
+    className === yearResultClass ||
     className === yearProfitClass ||
     className === halfResultClass ||
     className === quarterResultClass
