@@ -29,15 +29,15 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.addEventListener('load', () => {
-  $('.gyousekishuusei_zenkihi_title').after(
-    `<div class="button-box"><button id="${yearResultClass}" class="active" onclick="render('${yearResultClass}')">【通期】業績推移</button><button id="${yearGrowthClass}" onclick="render('${yearGrowthClass}')">【通期】成長性</button><button id="${yearProfitClass}" onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="year" width="640" height="320"></canvas>`
+  $('.fin_year_profit_d').after(
+    `<div class="button-box"><button id="year-display" onclick="toggleDisplay('year')">非表示にする</button><button id="${yearResultClass}" class="active" onclick="render('${yearResultClass}')">【通期】業績推移</button><button id="${yearGrowthClass}" onclick="render('${yearGrowthClass}')">【通期】成長性</button><button id="${yearProfitClass}" onclick="render('${yearProfitClass}')">【通期】収益性</button></div><canvas id="year" width="640" height="320"></canvas>`
   );
-  $('#hanki_name').after('<canvas id="half" width="640" height="320"></canvas>');
-  $('#shihanki_name')
-    .parent()
-    .before(
-      `<div class="button-box"><button id="${quarterResultClass}" class="active" onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button id="${quarterGrowthClass}" onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
-    );
+  $('.fin_half_result_d').after(
+    `<div class="button-box"><button id="half-display" onclick="toggleDisplay('half')">非表示にする</button></div><canvas id="half" width="640" height="320"></canvas>`
+  );
+  $('.fin_quarter_growth_d').after(
+    `<div class="button-box"><button id="quarter-display" onclick="toggleDisplay('quarter')">非表示にする</button><button id="${quarterResultClass}" class="active" onclick="render('${quarterResultClass}')">【四半期】業績推移</button><button id="${quarterGrowthClass}" onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
+  );
 
   const yearResultTable = parseTable($(`.${yearResultClass} > table`), yearResultClass);
   const halfResultTable = parseTable($(`.${halfResultClass} > table`), halfResultClass);
@@ -47,6 +47,11 @@ window.addEventListener('load', () => {
   renderGraph(halfResultTable, halfResultClass, halfGraphId);
   renderGraph(quarterResultTable, quarterResultClass, quarterGraphId);
 });
+
+function toggleDisplay(target) {
+  $(`#${target}`).toggle();
+  $(`#${target}-display`).text($(`#${target}`).is(':visible') ? '非表示にする' : '表示する');
+}
 
 function render(className) {
   const data = parseTable($(`.${className} > table`), className);
@@ -61,21 +66,13 @@ function render(className) {
 
   if (window[canvasId]) window[canvasId].destroy();
 
-  if (className.includes('year')) { 
-    [
-      $(`#${yearResultClass}`),
-      $(`#${yearGrowthClass}`),
-      $(`#${yearProfitClass}`),
-    ].forEach((el) => {
+  if (className.includes('year')) {
+    [$(`#${yearResultClass}`), $(`#${yearGrowthClass}`), $(`#${yearProfitClass}`)].forEach((el) => {
       if (el.attr('id') === className) el.addClass('active');
       else el.removeClass('active');
     });
-  }
-  else if (className.includes('quarter')) {
-    [
-      $(`#${quarterResultClass}`),
-      $(`#${quarterGrowthClass}`),
-    ].forEach((el) => {
+  } else if (className.includes('quarter')) {
+    [$(`#${quarterResultClass}`), $(`#${quarterGrowthClass}`)].forEach((el) => {
       if (el.attr('id') === className) el.addClass('active');
       else el.removeClass('active');
     });
