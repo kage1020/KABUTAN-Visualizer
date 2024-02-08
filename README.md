@@ -10,14 +10,10 @@ Visualize KABUTAN's finance report as bar and line graphes.
 
 ## Preview
 
-![](images/year-result.jpeg)
-
-![](images/year-growth.jpeg)
-
-![](images/year-profit.jpeg)
-
-![](images/half-result.jpeg)
-
-![](images/quarter-result.jpeg)
-
-![](images/quarter-growth.jpeg)
+| 【通期】業績推移 | 【通期】成長性 |
+| --------------- | ------------- |
+| ![](images/year-result.jpeg) | ![](images/year-growth.jpeg) |
+| 【通期】収益性 | 上期/下期業績 |
+| ![](images/year-profit.jpeg) | ![](images/half-result.jpeg) |
+| 【四半期】業績推移 | 【四半期】成長性 |
+| ![](images/quarter-result.jpeg) | ![](images/quarter-growth.jpeg) |
