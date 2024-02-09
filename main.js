@@ -175,7 +175,7 @@ const KABUKA_HISTORY_ITEMS = ['始値', '高値', '安値', '終値', '売買高
 const KABUKA_SHIN_HISTORY_ITEMS = ['終値', '売買高(株)', '売り残(株)', '買い残(株)', '信用倍率'];
 
 // graph orders
-const KABUKA_HISTORY_ORDERS = [2, 3, 4, 5, 1];
+const KABUKA_HISTORY_ORDERS = [1, 2, 3, 4, 5];
 const KABUKA_SHIN_HISTORY_ORDERS = [5, 2, 3, 4, 1];
 
 // ================ Event Listeners =================
@@ -440,15 +440,15 @@ function parseTable(table, className) {
       })
     );
   } else if (className === KABUKA_HISTORY_CLASS) {
-    data = data.map(d => {
+    data = data.map((d) => {
       d.splice(4, 2);
       return d;
-    })
-  } else if (className === KABUKA_SHIN_HISTORY_CLASS) { 
-    data = data.map(d => {
+    });
+  } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
+    data = data.map((d) => {
       d.splice(1, 2);
       return d;
-    })
+    });
   }
 
   data = data.map((d) => d.map((v) => (isNaN(v) ? null : v)));
@@ -544,7 +544,9 @@ function createGraphData(data, className) {
           }
           order = NEWS_ACC_ORDERS[i];
         } else if (className === KABUKA_HISTORY_CLASS) {
-          type = 'line';
+          if (i <= 3) {
+            type = 'line';
+          }
           if (i === 4) {
             yAxisID = 'right';
           }
@@ -691,7 +693,8 @@ function createGraphConfig(data, className) {
                 return KABUKA_HISTORY_ITEMS.indexOf(a.text) - KABUKA_HISTORY_ITEMS.indexOf(b.text);
               } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
                 return (
-                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) - KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
+                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) -
+                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
                 );
               }
               return 0;
@@ -727,7 +730,6 @@ function createGraphConfig(data, className) {
 function renderGraph(data, className) {
   const graphData = createGraphData(data, className);
   const graphConfig = createGraphConfig(graphData, className);
-  console.log(graphConfig);
   const canvasId = getCanvasId(className);
   const canvas = document.getElementById(canvasId);
   window[canvasId] = new Chart(canvas, graphConfig);
