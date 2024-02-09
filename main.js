@@ -64,13 +64,12 @@ window.addEventListener('load', () => {
     } onclick="render('${quarterGrowthClass}')">【四半期】成長性</button></div><canvas id="quarter" width="640" height="320"></canvas>`
   );
 
-  const yearResultTable = parseTable($(`.${yearResultClass} > table`), yearResultClass);
-  const halfResultTable = parseTable($(`.${halfResultClass} > table`), halfResultClass);
-  const quarterResultTable = parseTable($(`.${quarterResultClass} > table`), quarterResultClass);
-
-  renderGraph(yearResultTable, yearResultClass, yearGraphId);
-  renderGraph(halfResultTable, halfResultClass, halfGraphId);
-  renderGraph(quarterResultTable, quarterResultClass, quarterGraphId);
+  if (tab['tab_year'] === 'result') render(yearResultClass);
+  else if (tab['tab_year'] === 'growth') render(yearGrowthClass);
+  else if (tab['tab_year'] === 'profit') render(yearProfitClass);
+  render(halfResultClass);
+  if (tab['tab_quarter'] === 'result') render(quarterResultClass);
+  else if (tab['tab_quarter'] === 'growth') render(quarterGrowthClass);
 
   $(`.${yearResultTabClass}`).on('click', () => {
     if ($('#year').is(':visible')) {
@@ -130,7 +129,7 @@ function render(className) {
   else if (className === quarterResultClass) canvasId = quarterGraphId;
   else if (className === quarterGrowthClass) canvasId = quarterGraphId;
 
-  if (window[canvasId]) window[canvasId].destroy();
+  if (window[canvasId].destroy) window[canvasId].destroy();
 
   if (className.includes('year')) {
     [$(`#${yearResultClass}`), $(`#${yearGrowthClass}`), $(`#${yearProfitClass}`)].forEach((el) => {
@@ -201,10 +200,6 @@ function parseTable(table, className) {
         return isNaN(v) ? null : v;
       })
     );
-  }
-  // Change turnover rate to percentage
-  else if (className === yearProfitClass) {
-    data = data.map((d) => d.map((v, i) => (i === 5 ? v * 100 : v)));
   }
 
   data = data.map((d) => d.map((v) => (isNaN(v) ? null : v)));
@@ -396,6 +391,18 @@ function createGraphConfig(data, className) {
                 return quarterResultLegend.indexOf(a.text) - quarterResultLegend.indexOf(b.text);
               }
               return 0;
+            },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (tooltipItem) {
+              if (tooltipItem.dataset.label === '総資産回転率') return tooltipItem.dataset.label + ': ' + tooltipItem.formattedValue + '回';
+              if (tooltipItem.dataset.label.includes('率') || tooltipItem.dataset.label.includes('ＲＯ'))
+                return tooltipItem.dataset.label + ': ' + tooltipItem.formattedValue + '%';
+              if (tooltipItem.dataset.label.includes('修正'))
+                return tooltipItem.dataset.label + ': ' + tooltipItem.formattedValue + '円';
+                return tooltipItem.dataset.label + ': ' + tooltipItem.formattedValue + '百万円';
             },
           },
         },
