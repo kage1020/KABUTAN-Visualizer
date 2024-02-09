@@ -3,6 +3,7 @@
 	margin-top: 10px;
 	display: flex;
 	gap: 1rem;
+	width: 100%;
 }
 
 .button-box > button {
