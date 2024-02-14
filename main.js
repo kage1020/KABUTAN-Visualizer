@@ -440,15 +440,15 @@ function parseTable(table, className) {
       })
     );
   } else if (className === KABUKA_HISTORY_CLASS) {
-    data = data.map((d) => {
+    data = data.map(d => {
       d.splice(4, 2);
       return d;
-    });
-  } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
-    data = data.map((d) => {
+    })
+  } else if (className === KABUKA_SHIN_HISTORY_CLASS) { 
+    data = data.map(d => {
       d.splice(1, 2);
       return d;
-    });
+    })
   }
 
   data = data.map((d) => d.map((v) => (isNaN(v) ? null : v)));
@@ -476,6 +476,7 @@ function parseTable(table, className) {
  * @returns {Object} - The graph data object.
  */
 function createGraphData(data, className) {
+	console.log(data)
   const years = data.slice(1).map((d) => d[0]);
 
   const graphData = {
@@ -693,8 +694,7 @@ function createGraphConfig(data, className) {
                 return KABUKA_HISTORY_ITEMS.indexOf(a.text) - KABUKA_HISTORY_ITEMS.indexOf(b.text);
               } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
                 return (
-                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) -
-                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
+                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) - KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
                 );
               }
               return 0;
@@ -730,6 +730,7 @@ function createGraphConfig(data, className) {
 function renderGraph(data, className) {
   const graphData = createGraphData(data, className);
   const graphConfig = createGraphConfig(graphData, className);
+  console.log(graphConfig);
   const canvasId = getCanvasId(className);
   const canvas = document.getElementById(canvasId);
   window[canvasId] = new Chart(canvas, graphConfig);
@@ -905,8 +906,32 @@ function changeGraph(className) {
   }
 
   if (window[getCanvasId(className)].destroy) window[getCanvasId(className)].destroy();
-
-  renderGraph(className);
+  
+  if (className === FINANCE_YEAR_RESULT_CLASS)
+    renderGraph(
+      parseTable($(`.${FINANCE_YEAR_RESULT_CLASS} > table`), FINANCE_YEAR_RESULT_CLASS),
+      FINANCE_YEAR_RESULT_CLASS
+    );
+  else if (className === FINANCE_YEAR_GROWTH_CLASS)
+    renderGraph(
+      parseTable($(`.${FINANCE_YEAR_GROWTH_CLASS} > table`), FINANCE_YEAR_GROWTH_CLASS),
+      FINANCE_YEAR_GROWTH_CLASS
+    );
+  else if (className === FINANCE_YEAR_PROFIT_CLASS)
+    renderGraph(
+      parseTable($(`.${FINANCE_YEAR_PROFIT_CLASS} > table`), FINANCE_YEAR_PROFIT_CLASS),
+      FINANCE_YEAR_PROFIT_CLASS
+    );
+  else if (className === FINANCE_QUARTER_RESULT_CLASS)
+    renderGraph(
+      parseTable($(`.${FINANCE_QUARTER_RESULT_CLASS} > table`), FINANCE_QUARTER_RESULT_CLASS),
+      FINANCE_QUARTER_RESULT_CLASS
+    );
+  else if (className === FINANCE_QUARTER_GROWTH_CLASS)
+    renderGraph(
+      parseTable($(`.${FINANCE_QUARTER_GROWTH_CLASS} > table`), FINANCE_QUARTER_GROWTH_CLASS),
+      FINANCE_QUARTER_GROWTH_CLASS
+    );
 }
 
 // for news page
