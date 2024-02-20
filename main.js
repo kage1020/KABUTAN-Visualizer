@@ -612,14 +612,15 @@ function createGraphConfig(data, className) {
     className === FINANCE_CASH_FLOW_CLASS ||
     className === FINANCE_QUARTER_RESULT_CLASS ||
     className === FINANCE_FINANCE_CLASS ||
-    className === KABUKA_HISTORY_CLASS
+    className === KABUKA_SHIN_HISTORY_CLASS
   )
     rightDisplay = true;
 
   if (
     className === FINANCE_YEAR_PROFIT_CLASS ||
     className === FINANCE_QUARTER_RESULT_CLASS ||
-    className === FINANCE_FINANCE_CLASS
+    className === FINANCE_FINANCE_CLASS ||
+    className === KABUKA_SHIN_HISTORY_CLASS
   )
     right2Display = true;
 
@@ -792,7 +793,8 @@ function createGraphConfig(data, className) {
             label: function (tooltipItem) {
               const text = tooltipItem.dataset.label;
               if (text === '総資産回転率') return text + ': ' + tooltipItem.formattedValue + '回';
-              if (text === '有利子負債倍率') return text + ': ' + tooltipItem.formattedValue + '倍';
+              if (text === '有利子負債倍率' || text === '信用倍率')
+                return text + ': ' + tooltipItem.formattedValue + '倍';
               if (text.includes('率') || text.includes('ＲＯ'))
                 return text + ': ' + tooltipItem.formattedValue + '%';
               if (text.includes('修正') || text === '１株純資産')
@@ -822,7 +824,6 @@ function renderGraph(data, className) {
     const ECharts = echarts.init(canvas);
     ECharts.setOption(graphConfig);
   } else {
-    console.log(canvas, graphConfig);
     window[canvasId] = new Chart(canvas, graphConfig);
   }
 }
