@@ -6,9 +6,13 @@
 
 window.addEventListener('DOMContentLoaded', () => {
   // Chart.js
-  const el = document.createElement('script');
-  el.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-  document.body.appendChild(el);
+  const chartjs = document.createElement('script');
+  chartjs.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+  document.body.appendChild(chartjs);
+  // ECharts
+  const echarts = document.createElement('script');
+  echarts.src = 'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js';
+  document.body.appendChild(echarts);
 });
 
 // ==================== Constants ====================
@@ -166,6 +170,7 @@ const KABUKA_SHIN_HISTORY_CLASS = 'stock_kabuka_shin';
 
 // canvas id
 const KABUKA_HISTORY_CANVAS_ID = 'stock_kabuka_canvas';
+const KABUKA_SHIN_HISTORY_CANVAS_ID = 'stock_kabuka_shin_canvas';
 
 // button id
 const KABUKA_HISTORY_DISPLAY_BUTTON_ID = 'stock_kabuka_display_button';
@@ -246,7 +251,7 @@ window.addEventListener('load', () => {
     addNewsDOM();
     renderNewsGraph();
   } else if (url.includes('kabuka')) {
-    addKabukaDOM();
+    addKabukaDOM(ashi);
     renderKabukaGraph(ashi);
   }
 });
@@ -288,7 +293,8 @@ function getCanvasId(className) {
   if (className.includes('fin_quarter')) return FINANCE_QUARTER_CANVAS_ID;
   if (className.includes('fin_finance')) return FINANCE_FINANCE_CANVAS_ID;
   if (className.includes('fin_acc')) return NEWS_ACC_CANVAS_ID;
-  if (className.includes('kabuka')) return KABUKA_HISTORY_CANVAS_ID;
+  if (className === KABUKA_HISTORY_CLASS) return KABUKA_HISTORY_CANVAS_ID;
+  if (className === KABUKA_SHIN_HISTORY_CLASS) return KABUKA_SHIN_HISTORY_CANVAS_ID;
 }
 
 /**
@@ -440,15 +446,15 @@ function parseTable(table, className) {
       })
     );
   } else if (className === KABUKA_HISTORY_CLASS) {
-    data = data.map(d => {
+    data = data.map((d) => {
       d.splice(4, 2);
       return d;
-    })
-  } else if (className === KABUKA_SHIN_HISTORY_CLASS) { 
-    data = data.map(d => {
+    });
+  } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
+    data = data.map((d) => {
       d.splice(1, 2);
       return d;
-    })
+    });
   }
 
   data = data.map((d) => d.map((v) => (isNaN(v) ? null : v)));
@@ -476,11 +482,13 @@ function parseTable(table, className) {
  * @returns {Object} - The graph data object.
  */
 function createGraphData(data, className) {
-	console.log(data)
   const years = data.slice(1).map((d) => d[0]);
 
   const graphData = {
-    labels: years,
+    labels:
+      className === KABUKA_HISTORY_CLASS || className === KABUKA_SHIN_HISTORY_CLASS
+        ? years.reverse()
+        : years,
     datasets: Array(data[0].length)
       .fill(0)
       .map((_, i) => {
@@ -567,7 +575,13 @@ function createGraphData(data, className) {
         return {
           type: type,
           label: data[0][i],
-          data: data.slice(1).map((d) => d[i + 1]),
+          data:
+            className === KABUKA_HISTORY_CLASS || className === KABUKA_SHIN_HISTORY_CLASS
+              ? data
+                  .slice(1)
+                  .map((d) => d[i + 1])
+                  .reverse()
+              : data.slice(1).map((d) => d[i + 1]),
           backgroundColor: color(i, 'background'),
           borderColor: color(i, 'border'),
           yAxisID: yAxisID,
@@ -598,20 +612,90 @@ function createGraphConfig(data, className) {
     className === FINANCE_CASH_FLOW_CLASS ||
     className === FINANCE_QUARTER_RESULT_CLASS ||
     className === FINANCE_FINANCE_CLASS ||
-    className === KABUKA_HISTORY_CLASS ||
-    className === KABUKA_SHIN_HISTORY_CLASS
+    className === KABUKA_HISTORY_CLASS
   )
     rightDisplay = true;
 
   if (
     className === FINANCE_YEAR_PROFIT_CLASS ||
     className === FINANCE_QUARTER_RESULT_CLASS ||
-    className === FINANCE_FINANCE_CLASS ||
-    className === KABUKA_SHIN_HISTORY_CLASS
+    className === FINANCE_FINANCE_CLASS
   )
     right2Display = true;
 
   if (className === FINANCE_FINANCE_CLASS) left2Display = true;
+
+  if (className === KABUKA_HISTORY_CLASS) {
+    return {
+      color: [color(2, 'bar')],
+      legend: {
+        data: ['株価', '出来高'],
+      },
+      tooltip: {
+        trigger: 'axis',
+      },
+      xAxis: {
+        type: 'category',
+        data: data.labels.reverse(),
+        splitLine: {
+          show: true,
+        },
+      },
+      grid: {
+        left: 60,
+        right: 50,
+        bottom: 50,
+      },
+      yAxis: [
+        {
+          type: 'value',
+          name: '円',
+          position: 'left',
+          splitLine: {
+            show: false,
+          },
+        },
+        {
+          type: 'value',
+          name: '株',
+          position: 'right',
+          splitLine: {
+            show: false,
+          },
+        },
+      ],
+      series: [
+        {
+          type: 'candlestick',
+          data: Array(data.datasets[0].data.length)
+            .fill(0)
+            .map((_, i) => [
+              data.datasets[0].data[i],
+              data.datasets[3].data[i],
+              data.datasets[2].data[i],
+              data.datasets[1].data[i],
+            ]),
+          name: '株価',
+          dimensions: [
+            null,
+            { name: 'open', displayName: '始値' },
+            { name: 'close', displayName: '終値' },
+            { name: 'low', displayName: '安値' },
+            { name: 'high', displayName: '高値' },
+          ],
+          encode: {
+            tooltip: ['open', 'close', 'low', 'high'],
+          },
+        },
+        {
+          type: 'bar',
+          data: data.datasets[4].data,
+          yAxisIndex: 1,
+          name: '出来高',
+        },
+      ],
+    };
+  }
 
   const config = {
     type: 'bar',
@@ -694,7 +778,8 @@ function createGraphConfig(data, className) {
                 return KABUKA_HISTORY_ITEMS.indexOf(a.text) - KABUKA_HISTORY_ITEMS.indexOf(b.text);
               } else if (className === KABUKA_SHIN_HISTORY_CLASS) {
                 return (
-                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) - KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
+                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(a.text) -
+                  KABUKA_SHIN_HISTORY_ITEMS.indexOf(b.text)
                 );
               }
               return 0;
@@ -730,10 +815,15 @@ function createGraphConfig(data, className) {
 function renderGraph(data, className) {
   const graphData = createGraphData(data, className);
   const graphConfig = createGraphConfig(graphData, className);
-  console.log(graphConfig);
   const canvasId = getCanvasId(className);
   const canvas = document.getElementById(canvasId);
-  window[canvasId] = new Chart(canvas, graphConfig);
+  if (className === KABUKA_HISTORY_CLASS) {
+    const ECharts = echarts.init(canvas);
+    ECharts.setOption(graphConfig);
+  } else {
+    console.log(canvas, graphConfig);
+    window[canvasId] = new Chart(canvas, graphConfig);
+  }
 }
 
 // for finance page
@@ -742,14 +832,14 @@ function addFinanceDOM(tab) {
   $(`.${FINANCE_YEAR_PROFIT_CLASS}`).after(`
     <div class="button-box">
       <button
-        id="${FINANCE_YEAR_DISPLAY_BUTTON_ID}" 
+        id="${FINANCE_YEAR_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${FINANCE_YEAR_CANVAS_ID}')"
       >
         非表示にする
       </button>
       <button
         id="${FINANCE_YEAR_RESULT_BUTTON_ID}"
-        class="${tab['tab_year'] === 'result' ? 'active' : ''}" 
+        class="${tab['tab_year'] === 'result' ? 'active' : ''}"
         onclick="changeGraph('${FINANCE_YEAR_RESULT_CLASS}')"
       >
         【通期】業績推移
@@ -770,23 +860,23 @@ function addFinanceDOM(tab) {
       </button>
     </div>
     <canvas
-      id="${FINANCE_YEAR_CANVAS_ID}" 
-      width="640" 
+      id="${FINANCE_YEAR_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
   $(`.${FINANCE_HALF_RESULT_CLASS}`).after(`
     <div class="button-box">
       <button
-        id="${FINANCE_HALF_DISPLAY_BUTTON_ID}" 
+        id="${FINANCE_HALF_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${FINANCE_HALF_CANVAS_ID}')"
       >
         非表示にする
       </button>
     </div>
     <canvas
-      id="${FINANCE_HALF_CANVAS_ID}" 
-      width="640" 
+      id="${FINANCE_HALF_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
@@ -808,14 +898,14 @@ function addFinanceDOM(tab) {
   $(`.${FINANCE_QUARTER_GROWTH_CLASS}`).after(`
     <div class="button-box">
       <button
-        id="${FINANCE_QUARTER_DISPLAY_BUTTON_ID}" 
+        id="${FINANCE_QUARTER_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${FINANCE_QUARTER_CANVAS_ID}')"
       >
         非表示にする
       </button>
       <button
         id="${FINANCE_QUARTER_RESULT_BUTTON_ID}"
-        class="${tab['tab_quarter'] === 'result' ? 'active' : ''}" 
+        class="${tab['tab_quarter'] === 'result' ? 'active' : ''}"
         onclick="changeGraph('${FINANCE_QUARTER_RESULT_CLASS}')"
       >
         【四半期】業績推移
@@ -829,23 +919,23 @@ function addFinanceDOM(tab) {
       </button>
     </div>
     <canvas
-      id="${FINANCE_QUARTER_CANVAS_ID}" 
-      width="640" 
+      id="${FINANCE_QUARTER_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
   $('ul.info').before(`
     <div class="button-box">
       <button
-        id="${FINANCE_FINANCE_DISPLAY_BUTTON_ID}" 
+        id="${FINANCE_FINANCE_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${FINANCE_FINANCE_CANVAS_ID}')"
       >
         非表示にする
       </button>
     </div>
     <canvas
-      id="${FINANCE_FINANCE_CANVAS_ID}" 
-      width="640" 
+      id="${FINANCE_FINANCE_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
@@ -906,7 +996,7 @@ function changeGraph(className) {
   }
 
   if (window[getCanvasId(className)].destroy) window[getCanvasId(className)].destroy();
-  
+
   if (className === FINANCE_YEAR_RESULT_CLASS)
     renderGraph(
       parseTable($(`.${FINANCE_YEAR_RESULT_CLASS} > table`), FINANCE_YEAR_RESULT_CLASS),
@@ -940,45 +1030,45 @@ function addNewsDOM() {
   $(`#shihankiruikei_name`).parent().next().next().after(`
     <div class="button-box">
       <button
-        id="${NEWS_ACC_DISPLAY_BUTTON_ID}" 
+        id="${NEWS_ACC_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${NEWS_ACC_CANVAS_ID}')"
       >
         非表示にする
       </button>
     </div>
     <canvas
-      id="${NEWS_ACC_CANVAS_ID}" 
-      width="640" 
+      id="${NEWS_ACC_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
   $(`.${NEWS_YEAR_CLASS}`).after(`
     <div class="button-box">
       <button
-        id="${NEWS_YEAR_DISPLAY_BUTTON_ID}" 
+        id="${NEWS_YEAR_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${NEWS_YEAR_CANVAS_ID}')"
       >
         非表示にする
       </button>
     </div>
     <canvas
-      id="${NEWS_YEAR_CANVAS_ID}" 
-      width="640" 
+      id="${NEWS_YEAR_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
   $(`.${NEWS_QUARTER_CLASS}`).after(`
     <div class="button-box">
       <button
-        id="${NEWS_QUARTER_DISPLAY_BUTTON_ID}" 
+        id="${NEWS_QUARTER_DISPLAY_BUTTON_ID}"
         onclick="toggleDisplay('${NEWS_QUARTER_CANVAS_ID}')"
       >
         非表示にする
       </button>
     </div>
     <canvas
-      id="${NEWS_QUARTER_CANVAS_ID}" 
-      width="640" 
+      id="${NEWS_QUARTER_CANVAS_ID}"
+      width="640"
       height="320"
     ></canvas>
   `);
@@ -998,20 +1088,27 @@ function renderNewsGraph() {
 
 // for kabuka page
 
-function addKabukaDOM() {
+function addKabukaDOM(ashi) {
   $(`.${KABUKA_HISTORY_CLASS}`).parent().next().after(`
     <div class="button-box">
       <button
-        id="${KABUKA_HISTORY_DISPLAY_BUTTON_ID}" 
-        onclick="toggleDisplay('${KABUKA_HISTORY_CANVAS_ID}')"
+        id="${KABUKA_HISTORY_DISPLAY_BUTTON_ID}"
+        onclick="toggleDisplay('${
+          ashi === 'shin' ? KABUKA_SHIN_HISTORY_CANVAS_ID : KABUKA_HISTORY_CANVAS_ID
+        }')"
       >
         非表示にする
       </button>
     </div>
+    <div
+      id="${KABUKA_HISTORY_CANVAS_ID}"
+      style="width:640px;height:320px;display:${ashi === 'shin' ? 'none' : 'block'}"
+    ></div>
     <canvas
-      id="${KABUKA_HISTORY_CANVAS_ID}" 
-      width="640" 
+      id="${KABUKA_SHIN_HISTORY_CANVAS_ID}"
+      width="640"
       height="320"
+      style="display:${ashi === 'shin' ? 'block' : 'none'}"
     ></canvas>
   `);
 }
