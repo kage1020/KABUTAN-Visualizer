@@ -643,7 +643,7 @@ function createGraphConfig(data, className) {
       },
       grid: {
         left: 60,
-        right: 50,
+        right: 80,
         bottom: 50,
       },
       yAxis: [
@@ -654,6 +654,7 @@ function createGraphConfig(data, className) {
           splitLine: {
             show: false,
           },
+          scale: true,
         },
         {
           type: 'value',
